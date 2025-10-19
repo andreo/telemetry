@@ -1,0 +1,53 @@
+server:
+  log_level: debug
+  
+metrics:
+  wal_directory: /tmp/wal
+  global:
+    scrape_interval: 1s
+  configs:
+    - name: default
+      scrape_configs:
+        - job_name: "agent"
+          static_configs:
+            - targets: ["127.0.0.1:12345"]
+        - job_name: "test-program"
+          static_configs:
+            - targets: ["host.docker.internal:8080"]
+      remote_write:
+        - url: http://prometheus:9090/api/v1/write
+
+logs:
+  configs:
+    - name: default
+      positions:
+        filename: /tmp/positions.yaml
+      clients:
+        - url: http://loki:3100/loki/api/v1/push
+      scrape_configs:
+        - job_name: test-app
+          static_configs:
+            - targets: [localhost]
+              labels:
+                job: test-app
+                __path__: /var/host-log/*log
+        - job_name: graphana-agent
+          static_configs:
+            - targets: [localhost]
+              labels:
+                job: grafana-agent
+                __path__: /var/log/grafana-agent.log  
+traces:
+  configs:
+    - name: default
+      receivers:
+        otlp:
+          protocols:
+            grpc:
+              endpoint: 0.0.0.0:4317
+            http:
+              endpoint: 0.0.0.0:4318
+      remote_write:
+        - endpoint: tempo:4317
+          insecure: true
+          protocol: grpc
