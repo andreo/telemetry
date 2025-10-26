@@ -21,6 +21,7 @@ import (
     sdktrace "go.opentelemetry.io/otel/sdk/trace"
     "go.opentelemetry.io/otel/semconv/v1.21.0"
     "google.golang.org/grpc"
+	"github.com/grafana/pyroscope-go"
 )
 
 func randomFloat(min, max float64) float64 {
@@ -51,6 +52,19 @@ func op1(ctx context.Context, name string) {
 func main() {
 	ctx := context.Background()
 
+	pyroscope.Start(pyroscope.Config{
+		ApplicationName: "myapp.backend",
+		ServerAddress:   "http://localhost:4040",
+		ProfileTypes: []pyroscope.ProfileType{
+			pyroscope.ProfileCPU,
+			pyroscope.ProfileAllocObjects,
+			pyroscope.ProfileAllocSpace,
+			pyroscope.ProfileInuseObjects,
+			pyroscope.ProfileInuseSpace,
+			pyroscope.ProfileGoroutines,
+		},
+	})
+	
 	shutdown := initTracer()
 	defer shutdown()
 

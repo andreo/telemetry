@@ -30,7 +30,6 @@ services:
     networks:
       - telemetry-net
 
-
   tempo:
     image: grafana/tempo:latest
     container_name: tempo
@@ -44,6 +43,20 @@ services:
     networks:
       - telemetry-net
 
+  pyroscope:
+    image: grafana/pyroscope:latest
+    container_name: pyroscope
+    restart: unless-stopped
+    ports:
+      - "4040:4040"  # Pyroscope UI and API
+    environment:
+      - PYROSCOPE_LOG_LEVEL=info
+      - PYROSCOPE_STORAGE_PATH=/var/lib/pyroscope
+      - PYROSCOPE_RETENTION=30d
+    volumes:
+      - pyroscope-data:/var/lib/pyroscope
+    networks:
+      - telemetry-net
 
   grafana:
     image: grafana/grafana:latest
@@ -62,6 +75,7 @@ services:
       - prometheus
       - loki
       - tempo
+      - pyroscope
     networks:
       - telemetry-net
     volumes:
@@ -97,3 +111,4 @@ volumes:
   prometheus-data:
   loki-data:
   tempo-data:
+  pyroscope-data:
